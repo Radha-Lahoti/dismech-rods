@@ -1,50 +1,53 @@
-#include "eigenIncludes.h"
+#include "global_definitions.h"
+#include "logging/base_logger.h"
+#include "simulation_environments/headless_sim_env.h"
+#include "simulation_environments/opengl_sim_env.h"
 #include "world.h"
-#include "logging/worldLogger.h"
-#include "simulation_environments/headlessDERSimulationEnvironment.h"
-#include "simulation_environments/openglDERSimulationEnvironment.h"
-#include "robotDescription.h"
-#include "global_const.h"
+#ifdef WITH_MAGNUM
+#include "simulation_environments/magnum_sim_env.h"
+#endif
+#include "robot_description.h"
 
-
-shared_ptr<world> my_world;
-int verbosity;
+std::shared_ptr<World> my_world;
 
 // Hack: main creates the output file for logging
-ofstream logging_output_file;
+std::ofstream logging_output_file;
 
-double openglDERSimulationEnvironment::render_scale = 1.0;
-bool openglDERSimulationEnvironment::show_mat_frames = false;
+double OpenGLSimEnv::render_scale = 1.0;
+bool OpenGLSimEnv::show_mat_frames = false;
 
+int main(int argc, char* argv[]) {
+    auto soft_robots = std::make_shared<SoftRobots>();
+    auto forces = std::make_shared<ForceContainer>();
+    SimParams sim_params;
+    RenderParams render_params;
+    std::shared_ptr<BaseLogger> logger = nullptr;
 
-int main(int argc,char *argv[])
-{
-    shared_ptr<softRobots> soft_robots = make_shared<softRobots>();
-    shared_ptr<forceContainer> forces = make_shared<forceContainer>();
-    simParams sim_params;  // TODO: make sure this is correct
-    shared_ptr<worldLogger> logger = nullptr;
+    getRobotDescription(argc, argv, soft_robots, forces, logger, sim_params, render_params);
+    soft_robots->setup();
 
-    get_robot_description(argc, argv, soft_robots, forces, logger, sim_params);
-    // // debugging
-    // cout<< "no. of shell limbs: " << soft_robots->shell_limbs.size()<<endl;
-    // cout<< "no. of rod limbs: " << soft_robots->limbs.size()<<endl;
+    // create the world for the robot to interact with
+    my_world = std::make_shared<World>(soft_robots, forces, sim_params);
 
-    my_world = make_shared<world>(soft_robots, forces, sim_params);
-    
-    verbosity = sim_params.debug_verbosity;
-
-    unique_ptr<derSimulationEnvironment> env;
-    if (sim_params.render) {
-        env = make_unique<openglDERSimulationEnvironment>(my_world, sim_params, logger, argc, argv);
+    std::unique_ptr<BaseSimEnv> env;
+    switch (render_params.renderer) {
+        case HEADLESS:
+            env = std::make_unique<HeadlessSimEnv>(my_world, render_params, logger);
+            break;
+        case OPENGL:
+            env = std::make_unique<OpenGLSimEnv>(my_world, render_params, logger, argc, argv);
+            break;
+#ifdef WITH_MAGNUM
+        case MAGNUM:
+            env =
+                std::make_unique<Magnum::MagnumSimEnv>(my_world, render_params, logger, argc, argv);
+            break;
+#endif
+        default:
+            throw std::runtime_error("Unknown renderer type provided.");
     }
-    else {
-        env = make_unique<headlessDERSimulationEnvironment>(my_world, sim_params, logger);
-    }
-    // cout<<"is_logging: "<< env->is_logging<<endl;
-    // cout<<"Now simulation  will start running."<< endl;
-
+    // run simulation
     env->runSimulation();
 
     exit(0);
 }
-

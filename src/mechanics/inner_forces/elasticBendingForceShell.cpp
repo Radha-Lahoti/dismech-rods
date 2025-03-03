@@ -1,8 +1,8 @@
 #include "elasticBendingForceShell.h"
-#include "time_steppers/baseTimeStepper.h"
+#include "time_steppers/base_time_stepper.h"
 
-elasticBendingForceShell::elasticBendingForceShell(const shared_ptr<softRobots>& m_soft_robots) :
-                                         baseForce(m_soft_robots)
+elasticBendingForceShell::elasticBendingForceShell(const std::shared_ptr<SoftRobots>& m_soft_robots) :
+                                         BaseForce(m_soft_robots)
 {
     Id3 << 1, 0, 0,
            0, 1, 0,
@@ -22,9 +22,9 @@ elasticBendingForceShell::elasticBendingForceShell(const shared_ptr<softRobots>&
     //     gradKappa2s.push_back(make_shared<MatrixXd>(MatrixXd::Zero(nb, 11)));
     // }
 
-    Jbb = MatrixXd::Zero(12,12);
+    Jbb = Eigen::MatrixXd::Zero(12,12);
 
-    f = VectorXd::Zero(12);
+    f = Eigen::VectorXd::Zero(12);
 }
 
 elasticBendingForceShell::~elasticBendingForceShell()
@@ -34,7 +34,7 @@ elasticBendingForceShell::~elasticBendingForceShell()
 
 
 // void elasticBendingForceShell::initValues() {}
-void elasticBendingForceShell::initValues(Vector3d m_e0, Vector3d m_e1 , Vector3d m_e2, Vector3d m_e3, Vector3d m_e4) {
+void elasticBendingForceShell::initValues(Eigen::Vector3d m_e0, Eigen::Vector3d m_e1 , Eigen::Vector3d m_e2, Eigen::Vector3d m_e3, Eigen::Vector3d m_e4) {
     m_cosA1 = m_e0.dot(m_e1) / (m_e0.norm() * m_e1.norm());
     m_cosA2 = m_e0.dot(m_e2) / (m_e0.norm() * m_e2.norm());
     m_cosA3 = -m_e0.dot(m_e3) / (m_e0.norm() * m_e3.norm());
@@ -66,37 +66,37 @@ void elasticBendingForceShell::initValues(Vector3d m_e0, Vector3d m_e1 , Vector3
 
 }
 
-void elasticBendingForceShell::computeGradTheta(VectorXd& gradTheta) {
+void elasticBendingForceShell::computeGradTheta(Eigen::VectorXd& gradTheta) {
     gradTheta.segment(0, 3) = m_cosA3 * m_nn1 / m_h3 + m_cosA4 * m_nn2 / m_h4;
     gradTheta.segment(3, 3) = m_cosA1 * m_nn1 / m_h1 + m_cosA2 * m_nn2 / m_h2;
     gradTheta.segment(6, 3) = - m_nn1 / m_h01;
     gradTheta.segment(9, 3) = - m_nn2 / m_h02;
 }
 
-void elasticBendingForceShell::computeHessTheta(MatrixXd& hessTheta) {
-    Matrix3d M331 = m_cosA3 / (m_h3 * m_h3) * m_m3 * m_nn1.transpose();
-    Matrix3d M311 = m_cosA3 / (m_h3 * m_h1) * m_m1 * m_nn1.transpose();
-    Matrix3d M131 = m_cosA1 / (m_h1 * m_h3) * m_m3 * m_nn1.transpose();
-    Matrix3d M3011 = m_cosA3 / (m_h3 * m_h01) * m_m01 * m_nn1.transpose();
-    Matrix3d M111 = m_cosA1 / (m_h1 * m_h1) * m_m1 * m_nn1.transpose();
-    Matrix3d M1011 = m_cosA1 / (m_h1 * m_h01) * m_m01 * m_nn1.transpose();
+void elasticBendingForceShell::computeHessTheta(Eigen::MatrixXd& hessTheta) {
+    Eigen::Matrix3d M331 = m_cosA3 / (m_h3 * m_h3) * m_m3 * m_nn1.transpose();
+    Eigen::Matrix3d M311 = m_cosA3 / (m_h3 * m_h1) * m_m1 * m_nn1.transpose();
+    Eigen::Matrix3d M131 = m_cosA1 / (m_h1 * m_h3) * m_m3 * m_nn1.transpose();
+    Eigen::Matrix3d M3011 = m_cosA3 / (m_h3 * m_h01) * m_m01 * m_nn1.transpose();
+    Eigen::Matrix3d M111 = m_cosA1 / (m_h1 * m_h1) * m_m1 * m_nn1.transpose();
+    Eigen::Matrix3d M1011 = m_cosA1 / (m_h1 * m_h01) * m_m01 * m_nn1.transpose();
 
-    Matrix3d M442 = m_cosA4 / (m_h4 * m_h4) * m_m4 * m_nn2.transpose();
-    Matrix3d M422 = m_cosA4 / (m_h4 * m_h2) * m_m2 * m_nn2.transpose();
-    Matrix3d M242 = m_cosA2 / (m_h2 * m_h4) * m_m4 * m_nn2.transpose();
-    Matrix3d M4022 = m_cosA4 / (m_h4 * m_h02) * m_m02 * m_nn2.transpose();
-    Matrix3d M222 = m_cosA2 / (m_h2 * m_h2) * m_m2 * m_nn2.transpose();
-    Matrix3d M2022 = m_cosA2 / (m_h2 * m_h02) * m_m02 * m_nn2.transpose();
+    Eigen::Matrix3d M442 = m_cosA4 / (m_h4 * m_h4) * m_m4 * m_nn2.transpose();
+    Eigen::Matrix3d M422 = m_cosA4 / (m_h4 * m_h2) * m_m2 * m_nn2.transpose();
+    Eigen::Matrix3d M242 = m_cosA2 / (m_h2 * m_h4) * m_m4 * m_nn2.transpose();
+    Eigen::Matrix3d M4022 = m_cosA4 / (m_h4 * m_h02) * m_m02 * m_nn2.transpose();
+    Eigen::Matrix3d M222 = m_cosA2 / (m_h2 * m_h2) * m_m2 * m_nn2.transpose();
+    Eigen::Matrix3d M2022 = m_cosA2 / (m_h2 * m_h02) * m_m02 * m_nn2.transpose();
 
-    Matrix3d B1 = 1 / (pow(m_e0.norm(), 2)) * m_nn1 * m_m01.transpose();
-    Matrix3d B2 = 1 / (pow(m_e0.norm(), 2)) * m_nn2 * m_m02.transpose();
+    Eigen::Matrix3d B1 = 1 / (pow(m_e0.norm(), 2)) * m_nn1 * m_m01.transpose();
+    Eigen::Matrix3d B2 = 1 / (pow(m_e0.norm(), 2)) * m_nn2 * m_m02.transpose();
 
-    Matrix3d N13 = 1 / (m_h01 * m_h3) * m_nn1 * m_m3.transpose();
-    Matrix3d N24 = 1 / (m_h02 * m_h4) * m_nn2 * m_m4.transpose();
-    Matrix3d N11 = 1 / (m_h01 * m_h1) * m_nn1 * m_m1.transpose();
-    Matrix3d N22 = 1 / (m_h02 * m_h2) * m_nn2 * m_m2.transpose();
-    Matrix3d N101 = 1 / (m_h01 * m_h01) * m_nn1 * m_m01.transpose();
-    Matrix3d N202 = 1 / (m_h02 * m_h02) * m_nn2 * m_m02.transpose();
+    Eigen::Matrix3d N13 = 1 / (m_h01 * m_h3) * m_nn1 * m_m3.transpose();
+    Eigen::Matrix3d N24 = 1 / (m_h02 * m_h4) * m_nn2 * m_m4.transpose();
+    Eigen::Matrix3d N11 = 1 / (m_h01 * m_h1) * m_nn1 * m_m1.transpose();
+    Eigen::Matrix3d N22 = 1 / (m_h02 * m_h2) * m_nn2 * m_m2.transpose();
+    Eigen::Matrix3d N101 = 1 / (m_h01 * m_h01) * m_nn1 * m_m01.transpose();
+    Eigen::Matrix3d N202 = 1 / (m_h02 * m_h02) * m_nn2 * m_m02.transpose();
 
     hessTheta.block(0,0, 3,3) = s(M331) - B1 + s(M442) - B2;
     hessTheta.block(0,3, 3,3) = M311 + M131.transpose() + B1 + M422 + M242.transpose() + B2;
@@ -124,8 +124,8 @@ void elasticBendingForceShell::computeForce(double dt)
         
         for (int i = 1; i < shell_limb->nh; i++)
         {
-            gradTheta = VectorXd::Zero(12);
-            hessTheta = MatrixXd::Zero(12,12);
+            gradTheta = Eigen::VectorXd::Zero(12);
+            hessTheta = Eigen::MatrixXd::Zero(12,12);
 
             hinge = shell_limb->HingeIsBet[i];
 
@@ -140,7 +140,7 @@ void elasticBendingForceShell::computeForce(double dt)
             3 * node2_ind, 3 * node2_ind + 1, 3 * node2_ind + 2, \
             3 * node3_ind, 3 * node3_ind + 1, 3 * node3_ind + 2 };
 
-            Vector3d node0, node1, node2, node3;
+            Eigen::Vector3d node0, node1, node2, node3;
             node0 = shell_limb->getVertex(node0_ind);
             node1 = shell_limb->getVertex(node1_ind);
             node2 = shell_limb->getVertex(node2_ind);
@@ -179,8 +179,8 @@ void elasticBendingForceShell::computeForceAndJacobian(double dt)
         
         for (int i = 1; i < shell_limb->nh; i++)
         {
-            gradTheta = VectorXd::Zero(12);
-            hessTheta = MatrixXd::Zero(12,12);
+            gradTheta = Eigen::VectorXd::Zero(12);
+            hessTheta = Eigen::MatrixXd::Zero(12,12);
 
             hinge = shell_limb->HingeIsBet[i];
 
@@ -195,7 +195,7 @@ void elasticBendingForceShell::computeForceAndJacobian(double dt)
             3 * node2_ind, 3 * node2_ind + 1, 3 * node2_ind + 2, \
             3 * node3_ind, 3 * node3_ind + 1, 3 * node3_ind + 2 };
 
-            Vector3d node0, node1, node2, node3;
+            Eigen::Vector3d node0, node1, node2, node3;
             node0 = shell_limb->getVertex(node0_ind);
             node1 = shell_limb->getVertex(node1_ind);
             node2 = shell_limb->getVertex(node2_ind);
@@ -212,11 +212,11 @@ void elasticBendingForceShell::computeForceAndJacobian(double dt)
             computeGradTheta(gradTheta);
             computeHessTheta(hessTheta);
 
-            // cout<<"gradTheta is: "<<gradTheta<<endl;
-            // cout<<"phi is: "<< shell_limb->phi(i) << endl;
-            // cout<<"phi bar is: "<< shell_limb->phi_bar(i) << endl;
+            // std::cout<<"gradTheta is: "<<gradTheta<< std::endl;
+            // std::cout<<"phi is: "<< shell_limb->phi(i) <<std::endl;
+            // std::cout<<"phi bar is: "<< shell_limb->phi_bar(i) <<std::endl;
 
-            // cout<< "Hinge Angles are:"<<endl;
+            // std::cout<< "Hinge Angles are:"<< std::endl;
 
             f = EIMatrices[shell_limb_idx] * (shell_limb->phi(i) - shell_limb->phi_bar(i)) * gradTheta;
 
@@ -227,8 +227,8 @@ void elasticBendingForceShell::computeForceAndJacobian(double dt)
             }
             
             Jbb = EIMatrices[shell_limb_idx] * (gradTheta*gradTheta.transpose() + (shell_limb->phi(i))*hessTheta);
-            // cout<<"bending force being added to the force vector: "<<-f<<endl;
-            // cout<<"bending jacobian being added to the jacobian matrix: "<< -Jbb;
+            // std::cout<<"bending force being added to the force vector: "<<-f<< std::endl;
+            // std::cout<<"bending jacobian being added to the jacobian matrix: "<< -Jbb;
 
             int p_counter = 0, q_counter = 0;
             for (int j : ind) {
@@ -244,16 +244,16 @@ void elasticBendingForceShell::computeForceAndJacobian(double dt)
     }
 }
 
-double elasticBendingForceShell::signedAngle(const Vector3d &u, const Vector3d &v, const Vector3d &n)
+double elasticBendingForceShell::signedAngle(const Eigen::Vector3d &u, const Eigen::Vector3d &v, const Eigen::Vector3d &n)
 {
     // Compute the angle between two vectors
-    Vector3d w = u.cross(v);
+    Eigen::Vector3d w = u.cross(v);
     double angle = atan2(w.norm(), u.dot(v));
     if (n.dot(w) < 0)
         return -angle;
     else
         return angle;
 }
-Matrix3d elasticBendingForceShell::s(Matrix3d &mat) {
+Eigen::Matrix3d elasticBendingForceShell::s(Eigen::Matrix3d &mat) {
     return (mat + mat.transpose());
 }

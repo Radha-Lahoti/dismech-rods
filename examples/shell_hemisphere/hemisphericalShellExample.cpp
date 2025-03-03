@@ -9,10 +9,10 @@ extern ofstream logging_output_file;  // defined in main.cpp
  */
 
 void get_robot_description(int argc, char** argv,
-                           const shared_ptr<softRobots>& soft_robots,
-                           const shared_ptr<forceContainer>& forces,
-                           shared_ptr<worldLogger>& logger,
-                           simParams& sim_params) {
+                           conststd::shared_ptr<SoftRobots>& soft_robots,
+                           conststd::shared_ptr<ForceContainer>& forces,
+                          std::shared_ptr<BaseLogger>& logger,
+                           SimParams& sim_params) {
 
     sim_params.dt = 1e-4;
     sim_params.sim_time = 2;
@@ -44,28 +44,28 @@ void get_robot_description(int argc, char** argv,
     inputProcessorFunc(inputFileName, Nodes, Face_Nodes);
 
     // debugging
-    cout << "Node positions:" << endl;
+    std::cout << "Node positions:" <<std::endl;
     for (int i = 0; i < Nodes.size(); i++) {
-        cout << (Nodes)[i] << endl;
+        std::cout << (Nodes)[i] <<std::endl;
     }
-    cout << "Face Nodes:" << endl;
+    std::cout << "Face Nodes:" <<std::endl;
     for (int i = 0; i < Face_Nodes.size(); i++) {
         for (int j = 0; j < (Face_Nodes)[i].size(); j++) {
-            cout << (Face_Nodes)[i][j] << ", ";
+            std::cout << (Face_Nodes)[i][j] << ", ";
         }
-        cout << ";" << endl;
+        std::cout << ";" <<std::endl;
     }
 
     // Create a shell beam along the x-y plane
     soft_robots->addShellLimb(Nodes, Face_Nodes, density, thickness, young_mod, poisson, friction_coeff);
 
-    // cout<< "no. of vertices: " << soft_robots->shell_limbs[0]->nv<<endl;
-    // cout<< "no. of edges: " << soft_robots->shell_limbs[0]->ne<<endl;
-    // cout<< "no. of faces: " << soft_robots->shell_limbs[0]->nf<<endl;
-    // cout<< "no. of hinges: " << soft_robots->shell_limbs[0]->nh<<endl;
-    // cout<<"thickness is: "<<soft_robots->shell_limbs[0]->thickness<<endl;
-    // cout<<"bending stiffness is: "<<soft_robots->shell_limbs[0]->EI<<endl;
-    // cout<<"stretching stiffness is: "<<soft_robots->shell_limbs[0]->EA<<endl;
+    // std::cout<< "no. of vertices: " << soft_robots->shell_limbs[0]->nv<< std::endl;
+    // std::cout<< "no. of edges: " << soft_robots->shell_limbs[0]->ne<< std::endl;
+    // std::cout<< "no. of faces: " << soft_robots->shell_limbs[0]->nf<< std::endl;
+    // std::cout<< "no. of hinges: " << soft_robots->shell_limbs[0]->nh<< std::endl;
+    // std::cout<<"thickness is: "<<soft_robots->shell_limbs[0]->thickness<< std::endl;
+    // std::cout<<"bending stiffness is: "<<soft_robots->shell_limbs[0]->EI<< std::endl;
+    // std::cout<<"stretching stiffness is: "<<soft_robots->shell_limbs[0]->EA<< std::endl;
 
     // Fix center point
     // vector<int> Fixed_node_indices{ 27 };
@@ -77,7 +77,7 @@ void get_robot_description(int argc, char** argv,
     }
 
     // Add gravity
-    Vector3d gravity_vec(0.0, 0.0, -9.8);
+    Eigen::Vector3d gravity_vec(0.0, 0.0, -9.8);
     forces->addForce(make_shared<gravityForce>(soft_robots, gravity_vec));
 
 
@@ -121,7 +121,7 @@ void inputProcessorFunc(const std::string inputFileName, vector<Vector3d>& Nodes
             // change "nodes\r" below to "nodes" if needed
             if (typeSpec == "nodes\r") {
                 if (dataLine.size() != 3) {
-                    cerr << "Warning. Invalid input for nodes." << endl;
+                    cerr << "Warning. Invalid input for nodes." <<std::endl;
                 } else {
                     double x = stod(dataLine[0]);
                     double y = stod(dataLine[1]);
@@ -132,7 +132,7 @@ void inputProcessorFunc(const std::string inputFileName, vector<Vector3d>& Nodes
             // change "facenodes\r" below to "facenodes" if needed
             else if (typeSpec == "facenodes\r") {
                 if (dataLine.size() != 3) {
-                    cerr << "Warning. Invalid input for edges." << endl;
+                    cerr << "Warning. Invalid input for edges." <<std::endl;
                 } else {
                     int node1 = stoi(dataLine[0]);
                     int node2 = stoi(dataLine[1]);

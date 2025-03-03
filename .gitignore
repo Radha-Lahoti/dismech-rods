@@ -14,5 +14,10 @@ custom_bot/SML_Robots/
 
 datafiles/
 option.txt
-robotDescription.cpp
+robot_description.cpp
 log_files/
+
+*_exec
+*.so
+*.egg-info
+__pycache__

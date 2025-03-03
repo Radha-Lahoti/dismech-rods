@@ -1,8 +1,8 @@
 #include "elasticStretchingForceShell.h"
-#include "time_steppers/baseTimeStepper.h"
+#include "time_steppers/base_time_stepper.h"
 
-elasticStretchingForceShell::elasticStretchingForceShell(const shared_ptr<softRobots>& m_soft_robots) :
-                                               baseForce(m_soft_robots)
+elasticStretchingForceShell::elasticStretchingForceShell(const std::shared_ptr<SoftRobots>& m_soft_robots) :
+                                               BaseForce(m_soft_robots)
 {
     f.setZero(3);
     Jss.setZero(6,6);
@@ -27,7 +27,7 @@ void elasticStretchingForceShell::computeForce(double dt)
             epsX = shell_limb->edge_len(i) / shell_limb->ref_len(i) - 1.0;
             f = shell_limb->EA * (shell_limb->tangent).row(i) * epsX;
 
-            // cout<<"stretching force being added to the force vector: "<<-f;
+            // std::cout<<"stretching force being added to the force vector: "<<-f;
 
             int n1 = shell_limb->EdgeIsBet[i][0] ; // node 1 number
             int n2 = shell_limb->EdgeIsBet[i][1] ; // node 2 number
@@ -76,7 +76,7 @@ void elasticStretchingForceShell::computeForceAndJacobian(double dt)
             Jss.block(3,0,3,3) = -M0;
             Jss.block(0,3,3,3) = -M0;
 
-            // cout<<"stretching jacobian being added to the jaconian matrix: "<<-Jss;
+            // std::cout<<"stretching jacobian being added to the jaconian matrix: "<<-Jss;
 
             // confirm if this is correctly done
             int p_counter = 0, q_counter = 0;

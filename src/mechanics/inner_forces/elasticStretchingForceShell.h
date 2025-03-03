@@ -1,14 +1,14 @@
 #ifndef ELASTICSTRETCHINGFORCESHELL_H
 #define ELASTICSTRETCHINGFORCESHELL_H
 
-#include "mechanics/baseForce.h"
+#include "mechanics/base_force.h"
 
-class baseTimeStepper;
+class BaseTimeStepper;
 
-class elasticStretchingForceShell : public baseForce
+class elasticStretchingForceShell : public BaseForce
 {
 public:
-    elasticStretchingForceShell(const shared_ptr<softRobots>& m_soft_robots);
+    elasticStretchingForceShell(const std::shared_ptr<SoftRobots>& m_soft_robots);
     ~elasticStretchingForceShell() override;
     void computeForce(double dt) override;
     void computeForceAndJacobian(double dt) override;
@@ -16,13 +16,13 @@ public:
 private:
     double len, refLength;
     double epsX;
-    Vector3d u;
-    Vector3d dxx;
-    Vector3d f;
-    Matrix3d Id3;
-    Matrix3d M0;
-    Matrix<double,1,3> v;
-    Matrix<double,6,6> Jss;
+    Eigen::Vector3d u;
+    Eigen::Vector3d dxx;
+    Eigen::Vector3d f;
+    Eigen::Matrix3d Id3;
+    Eigen::Matrix3d M0;
+    Eigen::Matrix<double,1,3> v;
+    Eigen::Matrix<double,6,6> Jss;
     
     double EA;
     int ind, ind1, ind2;	

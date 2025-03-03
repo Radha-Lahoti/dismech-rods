@@ -1,52 +1,52 @@
 #include "elasticShell.h"
 
 
-elasticShell::elasticShell(int limb_idx, const vector<Vector3d>& nodes, const vector<vector<int>>& Face_Nodes, double rho, double thickness,
+ElasticShell::ElasticShell(int limb_idx, const std::vector< Eigen::Vector3d>& nodes, const std::vector<std::vector<int>>& Face_Nodes, double rho, double thickness,
                double youngs_modulus, double poisson_ratio, double mu) :
                        limb_idx(limb_idx), ndof(nodes.size()*3), nv(nodes.size()), nf(Face_Nodes.size()),
                        all_nodes(nodes), Face_Nodes(Face_Nodes), rho(rho), thickness(thickness), youngM(youngs_modulus), poisson_ratio(poisson_ratio), mu(mu)
 {
-    // vector<int> vec {1,2,3};
+    // std::vector<int> vec {1,2,3};
     // EdgeIsBet.push_back(vec);
-    // Calculate all geometrical parameters and initialize dof vector, velocity vector, undeformed edge lengths, undeformed hinge angles
+    // Calculate all geometrical parameters and initialize dof std::vector, velocity std::vector, undeformed edge lengths, undeformed hinge angles
     setup();
-    // cout<<limb_idx<<endl;
+    // std::cout<<limb_idx<< std::endl;
 }
 
-void elasticShell::setup()
+void ElasticShell::setup()
 {
     int edge_index = 0;
     int hinge_index = 0;
 
-    vector<int> third_node;
+    std::vector<int> third_node;
 
     for (int c = 0; c < nf; c++) {
         int node1_number = (Face_Nodes)[c][0];
         int node2_number = (Face_Nodes)[c][1];
         int node3_number = (Face_Nodes)[c][2];
 
-        Vector3d node1_position = (all_nodes)[node1_number];
-        Vector3d node2_position = (all_nodes)[node2_number];
-        Vector3d node3_position = (all_nodes)[node3_number];
+         Eigen::Vector3d node1_position = (all_nodes)[node1_number];
+         Eigen::Vector3d node2_position = (all_nodes)[node2_number];
+         Eigen::Vector3d node3_position = (all_nodes)[node3_number];
 
-        Vector3d edge1 = node3_position - node2_position;
-        Vector3d edge2 = node1_position - node3_position;
-        Vector3d edge3 = node2_position - node1_position;
+         Eigen::Vector3d edge1 = node3_position - node2_position;
+         Eigen::Vector3d edge2 = node1_position - node3_position;
+         Eigen::Vector3d edge3 = node2_position - node1_position;
 
-        Vector3d face_normal = edge3.cross(edge1);
+         Eigen::Vector3d face_normal = edge3.cross(edge1);
 
-        Vector3d face_unit_norm = face_normal.normalized();
+         Eigen::Vector3d face_unit_norm = face_normal.normalized();
 
         normals.push_back(face_unit_norm);
 
-        vector<int> edge1_between{ node2_number, node3_number };
-        vector<int> edge1_between_negative{ node3_number, node2_number };
+        std::vector<int> edge1_between{ node2_number, node3_number };
+        std::vector<int> edge1_between_negative{ node3_number, node2_number };
 
-        vector<int> edge2_between{ node3_number, node1_number };
-        vector<int> edge2_between_negative{ node1_number, node3_number };
+        std::vector<int> edge2_between{ node3_number, node1_number };
+        std::vector<int> edge2_between_negative{ node1_number, node3_number };
 
-        vector<int> edge3_between{ node1_number, node2_number };
-        vector<int> edge3_between_negative{ node2_number, node1_number };
+        std::vector<int> edge3_between{ node1_number, node2_number };
+        std::vector<int> edge3_between_negative{ node2_number, node1_number };
 
         Face_Edges.push_back(std::vector<int>());
         sign_face_edges.push_back(std::vector<int>());
@@ -97,7 +97,7 @@ void elasticShell::setup()
                 (sign_face_edges)[c].push_back(-1);
             }
             else {
-                cout << "error in edge sign finding" << endl;
+                std::cout << "error in edge sign finding" <<std::endl;
             }
 
         }
@@ -147,7 +147,7 @@ void elasticShell::setup()
                 (sign_face_edges)[c].push_back(-1);
             }
             else {
-                cout << "error in edge sign finding" << endl;
+                std::cout << "error in edge sign finding" <<std::endl;
             }
         }
         //////////////////////////////////////////////////////////////
@@ -196,7 +196,7 @@ void elasticShell::setup()
                 (sign_face_edges)[c].push_back(-1);
             }
             else {
-                cout << "error in edge sign finding" << endl;
+                std::cout << "error in edge sign finding" <<std::endl;
             }
         }
     }
@@ -206,10 +206,10 @@ void elasticShell::setup()
 
     // check for debugging: check if size of edges and hinges vecs are correct
     if (EdgeIsBet.size() != ne || HingeIsBet.size() != nh) {
-        cout << "error in edge/hinges vectors" << endl;
+        std::cout << "error in edge/hinges std::vectors" <<std::endl;
     }
-    // Initialize dof vector
-        x = VectorXd::Zero(ndof);
+    // Initialize dof std::vector
+        x =  Eigen::VectorXd::Zero(ndof);
     for (int i = 0; i < nv; i++)
     {
         x(3 * i) = all_nodes[i](0);
@@ -218,8 +218,8 @@ void elasticShell::setup()
     }
     x0 = x;
 
-    // Initialize velocity vector
-    u = VectorXd::Zero(ndof);
+    // Initialize velocity std::vector
+    u =  Eigen::VectorXd::Zero(ndof);
     u0 = u;
 
     // code below is same as elasticRod::setup()
@@ -241,7 +241,7 @@ void elasticShell::setup()
     for (int i = 0; i < nv; i++)
     {
         isNodeJoint[i] = 0;
-        pair<int, int> non_joint{i, limb_idx};
+        std::pair<int, int> non_joint{i, limb_idx};
         joint_ids.push_back(non_joint);
     }
     for (int i = 0; i < ne; i++)
@@ -261,14 +261,14 @@ void elasticShell::setup()
     // set mass array
     setMass();
     // set tangent
-    tangent = MatrixXd::Zero(ne, 3);
+    tangent = Eigen::MatrixXd::Zero(ne, 3);
     computeTangent();
 
     // compute edge length
-    edge_len = VectorXd(ne);
+    edge_len =  Eigen::VectorXd(ne);
     computeEdgeLen();
     // compute phi's
-    phi = VectorXd(ne);
+    phi =  Eigen::VectorXd(ne);
     computeHingeAngles();
 
     // compute elastic stiffness
@@ -278,7 +278,7 @@ void elasticShell::setup()
 }
 
 // destructor
-elasticShell::~elasticShell()
+ElasticShell::~ElasticShell()
 {
     delete[] isConstrained;
     delete[] unconstrainedMap;
@@ -289,15 +289,15 @@ elasticShell::~elasticShell()
     delete[] DOFoffsets; 
 }
 
-void elasticShell::computeElasticStiffness()
+void ElasticShell::computeElasticStiffness()
 {
-    double mean_edge_len =  accumulate(ref_len.begin(), ref_len.end(), 0.0)/ne; //m (avg edge length)
+    double mean_edge_len =  std::accumulate(ref_len.begin(), ref_len.end(), 0.0)/ne; //m (avg edge length)
     
     EI = 2 * youngM * pow(thickness, 3) / (sqrt(3) * 12);;
     EA = 0.5 * sqrt(3) * youngM * thickness * pow(mean_edge_len, 2);
 }
 
-double elasticShell::getHingeAngle(int k)
+double ElasticShell::getHingeAngle(int k)
 { 
     //         x2
     //         /\
@@ -322,29 +322,29 @@ double elasticShell::getHingeAngle(int k)
     int n2 = HingeIsBet[k][2];
     int n3 = HingeIsBet[k][3];
 
-    Vector3d node0, node1, node2, node3;
+     Eigen::Vector3d node0, node1, node2, node3;
     node0 << x(3*n0), x(3*n0 + 1), x(3*n0 + 2); 
     node1 << x(3*n1), x(3*n1 + 1), x(3*n1 + 2); 
     node2 << x(3*n2), x(3*n2 + 1), x(3*n2 + 2); 
     node3 << x(3*n3), x(3*n3 + 1), x(3*n3 + 2); 
 
-    Vector3d m_e0, m_e1, m_e2;
+     Eigen::Vector3d m_e0, m_e1, m_e2;
     m_e0 = node1 - node0;
     m_e1 = node2 - node0;
     m_e2 = node3 - node0;
 
-    Vector3d normal0 = m_e0.cross(m_e1);
-    Vector3d normal1 = m_e2.cross(m_e0);
+     Eigen::Vector3d normal0 = m_e0.cross(m_e1);
+     Eigen::Vector3d normal1 = m_e2.cross(m_e0);
 
-    // cout<<"normal of face0: "<<normal0<<endl;
-    // cout<<"normal of face1: "<<normal0<<endl;
+    // std::cout<<"normal of face0: "<<normal0<< std::endl;
+    // std::cout<<"normal of face1: "<<normal0<< std::endl;
 
     double theta = signedAngle(normal0, normal1, m_e0);
 
     return theta;
 }
 
-void elasticShell::addJoint(int node_num, bool remove_dof, int joint_node, int joint_limb)
+void ElasticShell::addJoint(int node_num, bool remove_dof, int joint_node, int joint_limb)
 {
     if (remove_dof)
     {
@@ -363,17 +363,17 @@ void elasticShell::addJoint(int node_num, bool remove_dof, int joint_node, int j
         {
             isNodeJoint[0] = 1;
             isEdgeJoint[0] = 1;
-            joint_ids[0] = pair<int, int>(joint_node, joint_limb);
+            joint_ids[0] = std::pair<int, int>(joint_node, joint_limb);
         }
         else if (node_num == nv - 1)
         {
             isNodeJoint[nv - 1] = 1;
             isEdgeJoint[nv - 2] = 1;
-            joint_ids[nv - 1] = pair<int, int>(joint_node, joint_limb);
+            joint_ids[nv - 1] = std::pair<int, int>(joint_node, joint_limb);
         }
         else
         {
-            throw runtime_error("Tried removing dofs at the mid point of an edge.");
+            throw std::runtime_error("Tried removing dofs at the mid point of an edge.");
         }
     }
     else
@@ -402,7 +402,7 @@ void elasticShell::addJoint(int node_num, bool remove_dof, int joint_node, int j
     }
 }
 
-void elasticShell::updateMap()
+void ElasticShell::updateMap()
 {
     ncons = 0;
     for (int i = 0; i < ndof; i++)
@@ -422,7 +422,7 @@ void elasticShell::updateMap()
     setupMap();
 }
 
-void elasticShell::freeVertexBoundaryCondition(int k)
+void ElasticShell::freeVertexBoundaryCondition(int k)
 {
     isConstrained[3 * k] = 0;
     isConstrained[3 * k + 1] = 0;
@@ -430,42 +430,42 @@ void elasticShell::freeVertexBoundaryCondition(int k)
 }
 
 // functions to handle boundary condition
-void elasticShell::setVertexBoundaryCondition(Vector3d position, int k)
+void ElasticShell::setVertexBoundaryCondition( Eigen::Vector3d position, int k)
 {
     isConstrained[3 * k] = 1;
     isConstrained[3 * k + 1] = 1;
     isConstrained[3 * k + 2] = 1;
-    // Store in the constrained dof vector
+    // Store in the constrained dof std::vector
     x(3 * k) = position(0);
     x(3 * k + 1) = position(1);
     x(3 * k + 2) = position(2);
     updateMap();
 }
 
-int elasticShell::getIfConstrained(int k) const
+int ElasticShell::getIfConstrained(int k) const
 {
     return isConstrained[k];
 }
 
-void elasticShell::setMass () 
+void ElasticShell::setMass () 
 {
 
-    mass_array = VectorXd::Zero(ndof);
+    mass_array =  Eigen::VectorXd::Zero(ndof);
 
     for (int i = 0; i<nf; i++){
         int node1ind = (Face_Nodes)[i][0];
         int node2ind = (Face_Nodes)[i][1];
         int node3ind = (Face_Nodes)[i][2];
 
-        Vector3d node1_position = (all_nodes)[node1ind];
-        Vector3d node2_position = (all_nodes)[node2ind];
-        Vector3d node3_position = (all_nodes)[node3ind];
+         Eigen::Vector3d node1_position = (all_nodes)[node1ind];
+         Eigen::Vector3d node2_position = (all_nodes)[node2ind];
+         Eigen::Vector3d node3_position = (all_nodes)[node3ind];
 
-        Vector3d edge1 = node3_position - node2_position;
-        Vector3d edge2 = node1_position - node3_position;
-        Vector3d edge3 = node2_position - node1_position;
+         Eigen::Vector3d edge1 = node3_position - node2_position;
+         Eigen::Vector3d edge2 = node1_position - node3_position;
+         Eigen::Vector3d edge3 = node2_position - node1_position;
 
-        Vector3d face_normal = edge3.cross(edge1);
+         Eigen::Vector3d face_normal = edge3.cross(edge1);
 
         double face_A = 0.5 * face_normal.norm();
         double Mface = rho * face_A * thickness;
@@ -478,45 +478,45 @@ void elasticShell::setMass ()
     }
 }
 
-void elasticShell::setReferenceLength()
+void ElasticShell::setReferenceLength()
 {
     // This function is only run once at sim initilization
-    ref_len = VectorXd(ne);
+    ref_len =  Eigen::VectorXd(ne);
     for (int i = 0; i < ne; i++){
         ref_len(i) = (Edges[i].norm());
     }
 }
 
-void elasticShell::setPhiBar()
+void ElasticShell::setPhiBar()
 {   // This function is only run once at sim initilization
-// cout<<"setPhiBar is called! "<<endl;
-    phi_bar = VectorXd(nh);
+// std::cout<<"setPhiBar is called! "<< std::endl;
+    phi_bar =  Eigen::VectorXd(nh);
     for (int j = 0; j < nh; j++){
         phi_bar(j) = getHingeAngle(j);
     }
 }
 
-Vector3d elasticShell::getVertex(int k)
+ Eigen::Vector3d ElasticShell::getVertex(int k)
 {
     return x.segment<3>(3*k);
 }
 
-Vector3d elasticShell::getPreVertex(int k)
+ Eigen::Vector3d ElasticShell::getPreVertex(int k)
 {
     return x0.segment<3>(3*k);
 }
 
-Vector3d elasticShell::getVelocity(int k)
+ Eigen::Vector3d ElasticShell::getVelocity(int k)
 {
     return u.segment<3>(3*k);
 }
 
-Vector3d elasticShell::getTangent(int k)
+ Eigen::Vector3d ElasticShell::getTangent(int k)
 {
     return tangent.row(k);
 }
 
-void elasticShell::computeEdgeLen()
+void ElasticShell::computeEdgeLen()
 {
     for (int i = 0; i < ne; i++)
     {
@@ -526,15 +526,15 @@ void elasticShell::computeEdgeLen()
     }
 }
 
-void elasticShell::computeHingeAngles()
+void ElasticShell::computeHingeAngles()
 { 
-    // cout<<"computeHingeAngles is called!"<<endl;
+    // std::cout<<"computeHingeAngles is called!"<< std::endl;
     for (int j = 0; j < nh; j++){
         phi(j) = getHingeAngle(j);
     }
 }
 
-void elasticShell::computeTangent()
+void ElasticShell::computeTangent()
 {
     for (int i = 0; i < ne; i++)
     {
@@ -545,10 +545,10 @@ void elasticShell::computeTangent()
     }
 }
 
-double elasticShell::signedAngle(const Vector3d &u, const Vector3d &v, const Vector3d &n)
+double ElasticShell::signedAngle(const  Eigen::Vector3d &u, const  Eigen::Vector3d &v, const  Eigen::Vector3d &n)
 {
-    // Compute the angle between two vectors
-    Vector3d w = u.cross(v);
+    // Compute the angle between two std::vectors
+     Eigen::Vector3d w = u.cross(v);
     double angle = atan2(w.norm(), u.dot(v));
     if (n.dot(w) < 0)
         return -angle;
@@ -556,9 +556,9 @@ double elasticShell::signedAngle(const Vector3d &u, const Vector3d &v, const Vec
         return angle;
 }
 
-// void elasticShell::rotateAxisAngle(Vector3d &v, const Vector3d &z, const double &theta)
+// void ElasticShell::rotateAxisAngle( Eigen::Vector3d &v, const  Eigen::Vector3d &z, const double &theta)
 // {
-//     // Compute the vector when it rotates along another vector into certain angle
+//     // Compute the std::vector when it rotates along another std::vector into certain angle
 //     if (theta != 0) // if theta=0, v = v
 //     {
 //         double cs, ss;
@@ -568,7 +568,7 @@ double elasticShell::signedAngle(const Vector3d &u, const Vector3d &v, const Vec
 //     }
 // }
 
-void elasticShell::setupMap()
+void ElasticShell::setupMap()
 {
     int c = 0;
     for (int i = 0; i < ndof; i++)
@@ -582,14 +582,14 @@ void elasticShell::setupMap()
     }
 }
 
-void elasticShell::prepareForIteration()
+void ElasticShell::prepareForIteration()
 {
     computeEdgeLen();
     computeHingeAngles();
     computeTangent();
 }
 
-double elasticShell::updateNewtonX(double *dx, int offset, double alpha)
+double ElasticShell::updateNewtonX(double *dx, int offset, double alpha)
 {   int ind;
     double max_dx = 0;
     double curr_dx = 0;
@@ -606,7 +606,7 @@ double elasticShell::updateNewtonX(double *dx, int offset, double alpha)
     return max_dx;
 }
 
-void elasticShell::updateGuess(double weight, double dt)
+void ElasticShell::updateGuess(double weight, double dt)
 {
     int ind;
     for (int c = 0; c < uncons; c++)

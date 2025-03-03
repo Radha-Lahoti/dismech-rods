@@ -1,0 +1,107 @@
+#include "base_time_stepper.h"
+#include "mechanics/elastic_joint.h"
+#include "mechanics/elastic_rod.h"
+#include "mechanics/force_container.h"
+#include "mechanics/soft_robots.h"
+
+BaseTimeStepper::BaseTimeStepper(const std::shared_ptr<SoftRobots>& soft_robots,
+                                 const std::shared_ptr<ForceContainer>& forces,
+                                 const SimParams& sim_params)
+    : limbs(soft_robots->limbs), shell_limbs(soft_robots->shell_limbs), joints(soft_robots->joints), controllers(soft_robots->controllers),
+      forces(forces), dt(sim_params.dt), Force(nullptr, 0), DX(nullptr, 0) {
+    freeDOF = 0;
+    for (const auto& limb : limbs) {
+        offsets.push_back(freeDOF);
+        freeDOF += limb->uncons;
+    }
+
+    for (const auto& shell_limb : shell_limbs) {
+        offsets_shell.push_back(freeDOF);
+        freeDOF += shell_limb->uncons;
+    }
+
+    force = new double[freeDOF]{0};
+    new (&Force) Eigen::Map<VecX>(force, freeDOF);
+
+    dx = new double[freeDOF]{0};
+    new (&DX) Eigen::Map<VecX>(dx, freeDOF);
+
+    // total no. of dof
+    nDOF = 0;
+    for (const auto&limb : limbs) {
+        nDOF += limb->ndof;
+    }
+
+    for (const auto& shell_limb : shell_limbs) {
+        nDOF += shell_limb->ndof;
+    }
+
+}
+
+void BaseTimeStepper::initStepper() {
+    forces->setupForceStepperAccess(shared_from_this());
+}
+
+BaseTimeStepper::~BaseTimeStepper() {
+    delete[] dx;
+    delete[] force;
+}
+
+void BaseTimeStepper::addForce(int ind, double p, int limb_idx) {
+    std::shared_ptr<ElasticRod> limb = limbs[limb_idx];
+
+    offset = offsets[limb_idx];
+
+    if (limb->getIfConstrained(ind) == 0)  // free dof
+    {
+        mappedInd = limb->fullToUnconsMap[ind];
+        force[mappedInd + offset] += p;  // subtracting elastic force
+    }
+}
+
+void BaseTimeStepper::addForceShell(int ind, double p, int shell_limb_idx)
+{
+   std::shared_ptr<ElasticShell> shell_limb = shell_limbs[shell_limb_idx];
+
+    offset_shell = offsets_shell[shell_limb_idx];
+
+    if (shell_limb->getIfConstrained(ind) == 0) // free dof
+    {
+        mappedInd = shell_limb->fullToUnconsMap[ind];
+        force[mappedInd + offset_shell] += p; // subtracting elastic force
+    }
+}
+
+void BaseTimeStepper::setZero() {
+    Force.setZero();
+}
+
+void BaseTimeStepper::update() {
+    freeDOF = 0;
+    offsets.clear();
+    for (const auto& limb : limbs) {
+        offsets.push_back(freeDOF);
+        freeDOF += limb->uncons;
+    }
+    offsets_shell.clear();
+    for (const auto& shell_limb : shell_limbs) {
+        offsets_shell.push_back(freeDOF);
+        freeDOF += shell_limb->uncons;
+    }
+
+    delete[] force;
+    delete[] dx;
+
+    force = new double[freeDOF]{0};
+    new (&Force) Eigen::Map<VecX>(force, freeDOF);
+
+    dx = new double[freeDOF]{0};
+    new (&DX) Eigen::Map<VecX>(dx, freeDOF);
+}
+
+void BaseTimeStepper::prepSystemForIteration() {
+    for (const auto& joint : joints) joint->prepLimbs();
+    for (const auto& limb : limbs) limb->prepareForIteration();
+    for (const auto& shell_limb : shell_limbs) shell_limb->prepareForIteration();
+    for (const auto& joint : joints) joint->prepareForIteration();
+}

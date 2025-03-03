@@ -1,43 +1,43 @@
 #ifndef ELASTICBENDINGFORCESHELL_H
 #define ELASTICBENDINGFORCESHELL_H
 
-#include "mechanics/baseForce.h"
+#include "mechanics/base_force.h"
 
-class baseTimeStepper;
+class BaseTimeStepper;
 
-class elasticBendingForceShell : public baseForce
+class elasticBendingForceShell : public BaseForce
 {
 public:
-    elasticBendingForceShell(const shared_ptr<softRobots>& m_soft_robots);
+    elasticBendingForceShell(const std::shared_ptr<SoftRobots>& m_soft_robots);
     ~elasticBendingForceShell() override;
     void computeForce(double dt) override;
     void computeForceAndJacobian(double dt) override;
 
 private:
-    void initValues(Vector3d m_e0, Vector3d m_e1 , Vector3d m_e2, Vector3d m_e3, Vector3d m_e4);
-    void computeGradTheta(VectorXd& gradTheta);
-    void computeHessTheta(MatrixXd& hessTheta);
-    double signedAngle(const Vector3d &u, const Vector3d &v, const Vector3d &n);
-    Matrix3d s(Matrix3d &mat);
+    void initValues(Eigen::Vector3d m_e0, Eigen::Vector3d m_e1 , Eigen::Vector3d m_e2, Eigen::Vector3d m_e3, Eigen::Vector3d m_e4);
+    void computeGradTheta(Eigen::VectorXd& gradTheta);
+    void computeHessTheta(Eigen::MatrixXd& hessTheta);
+    double signedAngle(const Eigen::Vector3d &u, const Eigen::Vector3d &v, const Eigen::Vector3d &n);
+    Eigen::Matrix3d s(Eigen::Matrix3d &mat);
 
-    vector<double> EIMatrices;
-    vector<int> hinge;
+    std::vector<double> EIMatrices;
+    std::vector<int> hinge;
     double theta;
-    MatrixXd hessTheta;
-    VectorXd gradTheta;
-    MatrixXd Jbb;
-    VectorXd f;
+    Eigen::MatrixXd hessTheta;
+    Eigen::VectorXd gradTheta;
+    Eigen::MatrixXd Jbb;
+    Eigen::VectorXd f;
 
-    Vector3d m_e0, m_e1, m_e2, m_e3, m_e4;
+    Eigen::Vector3d m_e0, m_e1, m_e2, m_e3, m_e4;
 
-    Vector3d m_nn1;
-    Vector3d m_nn2;
-    Vector3d m_m1;
-    Vector3d m_m2;
-    Vector3d m_m3;
-    Vector3d m_m4;
-    Vector3d m_m01;
-    Vector3d m_m02;
+    Eigen::Vector3d m_nn1;
+    Eigen::Vector3d m_nn2;
+    Eigen::Vector3d m_m1;
+    Eigen::Vector3d m_m2;
+    Eigen::Vector3d m_m3;
+    Eigen::Vector3d m_m4;
+    Eigen::Vector3d m_m01;
+    Eigen::Vector3d m_m02;
 
 
     double m_cosA1;
@@ -61,7 +61,7 @@ private:
     double m_h01;
     double m_h02;
 
-    Matrix3d Id3;
+    Eigen::Matrix3d Id3;
 };
 
 #endif

@@ -1,19 +1,19 @@
 #ifndef ELASTICSHELL_H
 #define ELASTICSHELL_H
 
-#include "eigenIncludes.h"
+#include "global_definitions.h"
 
-class elasticShell
+class ElasticShell
 {
     // NOTE: probably could move more stuff to private
     public:
-    elasticShell(int limb_idx, const vector<Vector3d>& nodes, const vector<vector<int> >& Face_Nodes, double rho, double thickness,
+    ElasticShell(int limb_idx, const std::vector< Eigen::Vector3d>& nodes, const std::vector<std::vector<int> >& Face_Nodes, double rho, double thickness,
                double youngs_modulus, double poisson_ratio, double mu);
-    ~elasticShell();
+    ~ElasticShell();
 
 
     // utility functions
-    void setVertexBoundaryCondition(Vector3d position, int k);
+    void setVertexBoundaryCondition( Eigen::Vector3d position, int k);
     void prepareForIteration();
     double updateNewtonX(double *dx, int offset, double alpha=1.0);
     void updateGuess(double weight, double dt);
@@ -21,10 +21,10 @@ class elasticShell
     int limb_idx;
 
     // utility functions
-    Vector3d getVertex(int k);
-    Vector3d getPreVertex(int k);
-    Vector3d getVelocity(int k);
-    Vector3d getTangent(int k);
+     Eigen::Vector3d getVertex(int k);
+     Eigen::Vector3d getPreVertex(int k);
+     Eigen::Vector3d getVelocity(int k);
+     Eigen::Vector3d getTangent(int k);
     double getHingeAngle(int k);
 
     // Elastic stiffness values
@@ -42,49 +42,49 @@ class elasticShell
     int uncons;                // number of unconstrained dof
     double rho;                // density
     double thickness;          // cross-sectional thickness of the shell
-    vector<double> dm; // mass of each face
+    std::vector<double> dm; // mass of each face
     double mu; // friction coefficient
     
     // Edge length
-    VectorXd edge_len;
+     Eigen::VectorXd edge_len;
     // reference lengths
-    VectorXd ref_len;
+     Eigen::VectorXd ref_len;
     // hinge angles
-    VectorXd phi;
+     Eigen::VectorXd phi;
     // intial reference hinge angles
-    VectorXd phi_bar;
+     Eigen::VectorXd phi_bar;
     
 
-    vector<Vector3d> all_nodes;
-    vector<vector<int> > Face_Nodes;
-    vector<Vector3d> Edges; 
-    vector<vector<int> > Face_Edges;
-    vector<vector<int> > sign_face_edges; 
-    vector<vector<int> > EdgeIsBet; 
-    vector<vector<int> > HingeIsBet;
-    vector<Vector3d> edge_avg_normals;
+    std::vector< Eigen::Vector3d> all_nodes;
+    std::vector<std::vector<int> > Face_Nodes;
+    std::vector< Eigen::Vector3d> Edges; 
+    std::vector<std::vector<int> > Face_Edges;
+    std::vector<std::vector<int> > sign_face_edges; 
+    std::vector<std::vector<int> > EdgeIsBet; 
+    std::vector<std::vector<int> > HingeIsBet;
+    std::vector< Eigen::Vector3d> edge_avg_normals;
 
 
-    // dof vector before time step
-    VectorXd x0;
-    // dof vector after time step
-    VectorXd x;
-    // dof vector for line search /***** what is this?
-    VectorXd x_ls;
-    // velocity vector
-    VectorXd u;
-    VectorXd u0;
+    // dof std::vector before time step
+     Eigen::VectorXd x0;
+    // dof std::vector after time step
+     Eigen::VectorXd x;
+    // dof std::vector for line search /***** what is this?
+     Eigen::VectorXd x_ls;
+    // velocity std::vector
+     Eigen::VectorXd u;
+     Eigen::VectorXd u0;
 
     // Face Normals
-    vector<Vector3d> normals;
+    std::vector< Eigen::Vector3d> normals;
     // Tangents
-    MatrixXd tangent;
-    MatrixXd tangent_old;
+    Eigen::MatrixXd tangent;
+    Eigen::MatrixXd tangent_old;
 
     // lumped mass
-    VectorXd mass_array;
+     Eigen::VectorXd mass_array;
     // lumped mass at unconstrained dofs
-    VectorXd mUncons;
+     Eigen::VectorXd mUncons;
 
     // boundary conditions
     int *isConstrained;
@@ -102,7 +102,7 @@ class elasticShell
     int *isNodeJoint;
     int *isEdgeJoint;
     int *DOFoffsets;
-    vector<pair<int, int>> joint_ids;
+    std::vector<std::pair<int, int>> joint_ids;
 
 private:
     void setupMap(); //********* not understood this clearly, kept as is for shell for now.
@@ -116,7 +116,7 @@ private:
     void computeTangent();
     void computeEdgeLen();
     void computeHingeAngles();
-    static double signedAngle(const Vector3d &u, const Vector3d &v, const Vector3d &n);
+    static double signedAngle(const  Eigen::Vector3d &u, const  Eigen::Vector3d &v, const  Eigen::Vector3d &n);
 };
 
 #endif

@@ -1,52 +1,59 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include "eigenIncludes.h"
-#include "robotDescription.h"
+#include "global_definitions.h"
+// #include "eigenIncludes.h"
+// #include "robotDescription.h"
 
-#include "mechanics/softRobots.h"
-#include "mechanics/forceContainer.h"
+
+#include "mechanics/soft_robots.h"
+#include "mechanics/force_container.h"
 
 // include inner force classes
-#include "mechanics/inner_forces/inertialForce.h"
-#include "mechanics/inner_forces/elasticStretchingForce.h"
-#include "mechanics/inner_forces/elasticBendingForce.h"
-#include "mechanics/inner_forces/elasticTwistingForce.h"
+#include "mechanics/inner_forces/inertial_force.h"
+#include "mechanics/inner_forces/elastic_stretching_force.h"
+#include "mechanics/inner_forces/elastic_bending_force.h"
+#include "mechanics/inner_forces/elastic_twisting_force.h"
 
 // include shell elastic forces
 #include "mechanics/inner_forces/elasticStretchingForceShell.h"
 #include "mechanics/inner_forces/elasticBendingForceShell.h"
 
 // include time stepper
-#include "time_steppers/forwardEuler.h"
-#include "time_steppers/verletPosition.h"
-#include "time_steppers/backwardEuler.h"
-#include "time_steppers/implicitMidpoint.h"
+#include "time_steppers/forward_euler.h"
+#include "time_steppers/verlet_position.h"
+#include "time_steppers/backward_euler.h"
+#include "time_steppers/implicit_midpoint.h"
 
+class SoftRobots;
+class ForceContainer;
+class BaseTimeStepper;
 
-class world
+class World
 {
-public:
-    world(const shared_ptr<softRobots>& soft_robots,
-          const shared_ptr<forceContainer>& forces,
-          const simParams& sim_params);
-    ~world();
+  public:
+    World(const std::shared_ptr<SoftRobots>& soft_robots,
+          const std::shared_ptr<ForceContainer>& forces, const SimParams& sim_params);
+    ~World();
     void updateTimeStep();
     double getCoordinate(int i, int limb_idx);
     double getShellCoordinate(int i, int shell_limb_idx);
-    VectorXd getM1(int i, int limb_idx);
-    VectorXd getM2(int i, int limb_idx);
+     Eigen::VectorXd getM1(int i, int limb_idx);
+     Eigen::VectorXd getM2(int i, int limb_idx);
 
     double getCurrentTime() const;
     bool simulationRunning() const;
     int getTimeStep() const;
     void printSimData();
+    bool floorExists();
+    double getFloorZ();
 
-    shared_ptr<softRobots> soft_robots;
+    std::shared_ptr<SoftRobots> soft_robots;
+
 
 private:
-    shared_ptr<forceContainer> forces;
-    shared_ptr<baseTimeStepper> stepper;
+    std::shared_ptr<ForceContainer> forces;
+    std::shared_ptr<BaseTimeStepper> stepper;
     
 
     int time_step;
