@@ -246,6 +246,13 @@ double BackwardEuler::wolfeLineSearch(double dt) {
             limb->updateNewtonX(dx, offsets[limb_idx], a);
             limb_idx++;
         }
+        int shell_limb_idx = 0;
+        for (auto& shell_limb : shell_limbs) {
+            shell_limb->x= shell_limb->x_ls;
+            shell_limb->updateNewtonX(dx, offsets_shell[shell_limb_idx], alpha);
+            shell_limb_idx++;
+        }
+
         prepSystemForIteration();
         // Compute the forces
         forces->computeForcesAndJacobian(dt);
@@ -267,6 +274,9 @@ double BackwardEuler::wolfeLineSearch(double dt) {
     }
     for (auto& joint : joints) {
         joint->x = joint->x_ls;
+    }
+    for (auto& shell_limb : shell_limbs) {
+        shell_limb->x= shell_limb->x_ls;
     }
     return a;
 }

@@ -1,4 +1,4 @@
-#include "robotDescription.h"
+#include "robot_description.h"
 
 extern std::ofstream logging_output_file;  // defined in main.cpp
 /*
@@ -8,21 +8,22 @@ extern std::ofstream logging_output_file;  // defined in main.cpp
  * custom external forces, and loggers in the function below.
  */
 
-void get_robot_description(int argc, char** argv,
+void getRobotDescription(int argc, char** argv,
                            const std::shared_ptr<SoftRobots>& soft_robots,
                            const std::shared_ptr<ForceContainer>& forces,
                            std::shared_ptr<BaseLogger>& logger,
-                           SimParams& sim_params) {
+                           SimParams& sim_params, 
+                           RenderParams& render_params) {
 
     sim_params.dt = 1e-3;
     sim_params.sim_time = 1000*sim_params.dt;
     sim_params.dtol = 1e-3;
-    sim_params.show_mat_frames = false;
-    sim_params.render_scale = 10.0;
+    render_params.show_mat_frames = false;
+    render_params.render_scale = 10.0;
     // sim_params.render = false;
     sim_params.enable_2d_sim = false;
     sim_params.structure_shell = true;
-    sim_params.line_search = false; // this is having some issues in shell case need to check
+    sim_params.line_search = NO_LS; // this is having some issues in shell case need to check
 
     double thickness = 0.001; // 1mm
     double young_mod = 2e8;
@@ -34,10 +35,10 @@ void get_robot_description(int argc, char** argv,
     // Nodes
     // Face_Nodes
 
-    vector<Vector3d> Nodes;
-    vector<vector<int> > Face_Nodes;
+    std::vector<Eigen::Vector3d> Nodes;
+    std::vector<std::vector<int> > Face_Nodes;
 
-    string inputFileName = "examples/shell_cantilever/input_shell_cantilever_for_c++.txt"; // new cantilever
+    std::string inputFileName = "examples/shell_cantilever/input_shell_cantilever_for_c++.txt"; // new cantilever
     inputProcessorFunc(inputFileName, Nodes, Face_Nodes);
 
     // // debugging
@@ -65,25 +66,25 @@ void get_robot_description(int argc, char** argv,
     // std::cout<<"stretching stiffness is: "<<soft_robots->shell_limbs[0]->EA<< std::endl;
 
     // Fix one end
-    vector<int> Fixed_node_indices{ 0,3,4,5,6,7,39,72,75,77,79 };
+    std::vector<int> Fixed_node_indices{ 0,3,4,5,6,7,39,72,75,77,79 };
     for (int i=0; i<Fixed_node_indices.size(); i++){
         soft_robots->lockNodeShell(0,Fixed_node_indices[i]);
     }
 
     // Add gravity
     Eigen::Vector3d gravity_vec(0.0, 0.0, -9.8);
-    forces->addForce(make_shared<gravityForce>(soft_robots, gravity_vec));
+    forces->addForce(std::make_shared<GravityForce>(soft_robots, gravity_vec));
 
     // Set logger to record nodes
-    string logfile_base = "log_files/shell_cantilever";
+    std::string logfile_base = "log_files/shell_cantilever";
     int logging_period = 1;
-    logger = make_shared<ShellNodeLogger>(logfile_base, convert_float_to_scientific_str(young_mod),
+    logger = std::make_shared<ShellNodeLogger>(logfile_base, convertFloatToScientificStr(young_mod),
                                         logging_output_file, logging_period);
 }
 
-void inputProcessorFunc(const std::string inputFileName, vector<Vector3d>& Nodes, vector<vector<int>>& facenodes) {
-    ifstream inputFile(inputFileName);
-    string line, typeSpec;
+void inputProcessorFunc(const std::string inputFileName, std::vector<Eigen::Vector3d>& Nodes, std::vector<std::vector<int>>& facenodes) {
+    std::ifstream inputFile(inputFileName);
+    std::string line, typeSpec;
 
     Nodes.clear();
     facenodes.clear();
@@ -100,9 +101,9 @@ void inputProcessorFunc(const std::string inputFileName, vector<Vector3d>& Nodes
             typeSpec = line.substr(1);
             transform(typeSpec.begin(), typeSpec.end(), typeSpec.begin(), ::tolower);
         } else {
-            istringstream iss(line);
-            string token;
-            vector<string> dataLine;
+            std::istringstream iss(line);
+            std::string token;
+            std::vector<std::string> dataLine;
 
             while (getline(iss, token, ',')) {
                 dataLine.push_back(token);
@@ -114,22 +115,22 @@ void inputProcessorFunc(const std::string inputFileName, vector<Vector3d>& Nodes
             // change "nodes\r" below to "nodes" if needed
             if (typeSpec == "nodes") {
                 if (dataLine.size() != 3) {
-                    cerr << "Warning. Invalid input for nodes." <<std::endl;
+                    std::cerr << "Warning. Invalid input for nodes." <<std::endl;
                 } else {
-                    double x = stod(dataLine[0]);
-                    double y = stod(dataLine[1]);
-                    double z = stod(dataLine[2]);
-                    Nodes.push_back(Vector3d(x, y, z));
+                    double x = std::stod(dataLine[0]);
+                    double y = std::stod(dataLine[1]);
+                    double z = std::stod(dataLine[2]);
+                    Nodes.push_back(Eigen::Vector3d(x, y, z));
                 }
             } 
             // change "facenodes\r" below to "facenodes" if needed
             else if (typeSpec == "facenodes") {
                 if (dataLine.size() != 3) {
-                    cerr << "Warning. Invalid input for edges." <<std::endl;
+                    std::cerr << "Warning. Invalid input for edges." <<std::endl;
                 } else {
-                    int node1 = stoi(dataLine[0]);
-                    int node2 = stoi(dataLine[1]);
-                    int node3 = stoi(dataLine[2]);
+                    int node1 = std::stoi(dataLine[0]);
+                    int node2 = std::stoi(dataLine[1]);
+                    int node3 = std::stoi(dataLine[2]);
                     facenodes.push_back({node1, node2, node3});
                 }
             }

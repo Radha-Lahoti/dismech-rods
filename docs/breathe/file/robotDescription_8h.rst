@@ -1,4 +1,4 @@
-File robotDescription.h
+File robot_description.h
 =======================
 
-.. doxygenfile:: robotDescription.h
+.. doxygenfile:: robot_description.h

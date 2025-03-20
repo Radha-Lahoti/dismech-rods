@@ -3,7 +3,7 @@
 
 #include "global_definitions.h"
 // #include "eigenIncludes.h"
-// #include "robotDescription.h"
+// #include "robot_description.h"
 
 
 #include "mechanics/soft_robots.h"

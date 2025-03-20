@@ -32,6 +32,19 @@ void GravityForce::computeForce(double dt) {
             stepper->addForce(4 * joint->joint_node + i, -force, joint->joint_limb);
         }
     }
+
+     // shell
+    int shell_limb_idx = 0;
+    for (const auto& shell_limb : soft_robots->shell_limbs) {
+        mass_gravity = mass_gravities[shell_limb_idx];
+        // cout<<"gravity force being added to the force vector: "<<mass_gravity<<endl;
+        for (int i = 0; i < shell_limb->ndof; i++)
+        {
+            // if (limb->isDOFJoint[i]) continue;
+            stepper->addForceShell(i, -mass_gravity[i], shell_limb_idx); // subtracting gravity force
+        }
+        shell_limb_idx++;
+    }
 }
 
 void GravityForce::computeForceAndJacobian(double dt) {
@@ -48,5 +61,20 @@ void GravityForce::setGravity() {
             }
         }
         mass_gravities.push_back(mass_gravity);
+    }
+
+    // shell
+    for (const auto& shell_limb : soft_robots->shell_limbs) {
+        mass_gravity = Eigen::VectorXd::Zero(shell_limb->ndof);
+        for (int i = 0; i < shell_limb->nv; i++)
+        {
+            for (int k = 0; k < 3; k++)
+            {
+                int ind = 3*i + k;
+                mass_gravity[ind] = g_vector[k] * shell_limb->mass_array[ind];
+            }
+        }
+        mass_gravities.push_back(mass_gravity);
+        std::cout<<"total gravity force = "<< mass_gravity.sum()<<std::endl;
     }
 }

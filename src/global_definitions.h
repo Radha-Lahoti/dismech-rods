@@ -1,9 +1,9 @@
 #ifndef GLOBAL_DEFINITIONS_H
 #define GLOBAL_DEFINITIONS_H
 
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-#include <Eigen/Sparse>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Geometry>
+#include <eigen3/Eigen/Sparse>
 
 #include <cmath>
 #include <iostream>
@@ -159,6 +159,8 @@ struct SimParams
      * the xz plane.
      */
     bool enable_2d_sim = false;
+    bool structure_shell = false;
+    
 };
 
 /**

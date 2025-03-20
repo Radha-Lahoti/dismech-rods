@@ -1,28 +1,28 @@
-#include "robotDescription.h"
+#include "robot_description.h"
 
-extern ofstream logging_output_file;  // defined in main.cpp
+extern std::ofstream logging_output_file;  // defined in main.cpp
 /*
- * Dynamic Cantilever Example
+ * Hemispherical Shell Example
  *
  * Define your soft robot structure(s), boundary conditions,
  * custom external forces, and loggers in the function below.
  */
 
-void get_robot_description(int argc, char** argv,
-                           conststd::shared_ptr<SoftRobots>& soft_robots,
-                           conststd::shared_ptr<ForceContainer>& forces,
+void getRobotDescription(int argc, char** argv,
+                           const std::shared_ptr<SoftRobots>& soft_robots,
+                           const std::shared_ptr<ForceContainer>& forces,
                           std::shared_ptr<BaseLogger>& logger,
-                           SimParams& sim_params) {
+                           SimParams& sim_params, RenderParams& render_params) {
 
     sim_params.dt = 1e-4;
     sim_params.sim_time = 2;
     sim_params.dtol = 1e-3;
-    sim_params.show_mat_frames = false;
-    sim_params.render_scale = 0.2;
+    render_params.show_mat_frames = false;
+    render_params.render_scale = 0.2;
     // sim_params.render = false;
     sim_params.enable_2d_sim = false;
     sim_params.structure_shell = true;
-    sim_params.line_search = false; // this is having some issues in case of shell, need to check
+    sim_params.line_search = NO_LS; // this is having some issues in case of shell, need to check
 
     double thickness = 0.001; // 1mm
     double young_mod = 1e5;
@@ -34,12 +34,12 @@ void get_robot_description(int argc, char** argv,
     // Nodes
     // Face_Nodes
 
-    vector<Vector3d> Nodes;
-    vector<vector<int> > Face_Nodes;
+    std::vector<Eigen::Vector3d> Nodes;
+    std::vector<std::vector<int> > Face_Nodes;
 
     // string inputFileName = "examples/shell_hemisphere/input hemisphere for c++.txt"; // hemispherical shell
     // string inputFileName = "examples/shell_hemisphere/input hemisphere denser for c++.txt"; // hemispherical shell denser
-    string inputFileName = "examples/shell_hemisphere/input hemisphere for c++ less dense.txt"; // hemispherical shell less dense
+    std::string inputFileName = "examples/shell_hemisphere/input hemisphere for c++ less dense.txt"; // hemispherical shell less dense
 
     inputProcessorFunc(inputFileName, Nodes, Face_Nodes);
 
@@ -69,7 +69,7 @@ void get_robot_description(int argc, char** argv,
 
     // Fix center point
     // vector<int> Fixed_node_indices{ 27 };
-    vector<int> Fixed_node_indices{ 15 }; // less dense
+    std::vector<int> Fixed_node_indices{ 15 }; // less dense
     // vector<int> Fixed_node_indices{ 35 }; // denser
 
     for (int i=0; i<Fixed_node_indices.size(); i++){
@@ -78,19 +78,20 @@ void get_robot_description(int argc, char** argv,
 
     // Add gravity
     Eigen::Vector3d gravity_vec(0.0, 0.0, -9.8);
-    forces->addForce(make_shared<gravityForce>(soft_robots, gravity_vec));
+    forces->addForce(std::make_shared<GravityForce>(soft_robots, gravity_vec));
 
 
    // Set logger to record nodes
-    string logfile_base = "log_files/hemispherical_shell";
+    std::string logfile_base = "log_files/hemispherical_shell";
     int logging_period = 1;
-    logger = make_shared<shellNodeLogger>(logfile_base, convert_float_to_scientific_str(young_mod),
+    logger = std::make_shared<ShellNodeLogger>(logfile_base, convertFloatToScientificStr(young_mod),
                                         logging_output_file, logging_period);
 }
 
-void inputProcessorFunc(const std::string inputFileName, vector<Vector3d>& Nodes, vector<vector<int>>& facenodes) {
-    ifstream inputFile(inputFileName);
-    string line, typeSpec;
+
+void inputProcessorFunc(const std::string inputFileName, std::vector<Eigen::Vector3d>& Nodes, std::vector<std::vector<int>>& facenodes) {
+    std::ifstream inputFile(inputFileName);
+    std::string line, typeSpec;
 
     Nodes.clear();
     facenodes.clear();
@@ -107,9 +108,9 @@ void inputProcessorFunc(const std::string inputFileName, vector<Vector3d>& Nodes
             typeSpec = line.substr(1);
             transform(typeSpec.begin(), typeSpec.end(), typeSpec.begin(), ::tolower);
         } else {
-            istringstream iss(line);
-            string token;
-            vector<string> dataLine;
+            std::istringstream iss(line);
+            std::string token;
+            std::vector<std::string> dataLine;
 
             while (getline(iss, token, ',')) {
                 dataLine.push_back(token);
@@ -121,18 +122,18 @@ void inputProcessorFunc(const std::string inputFileName, vector<Vector3d>& Nodes
             // change "nodes\r" below to "nodes" if needed
             if (typeSpec == "nodes\r") {
                 if (dataLine.size() != 3) {
-                    cerr << "Warning. Invalid input for nodes." <<std::endl;
+                    std::cerr << "Warning. Invalid input for nodes." <<std::endl;
                 } else {
                     double x = stod(dataLine[0]);
                     double y = stod(dataLine[1]);
                     double z = stod(dataLine[2]);
-                    Nodes.push_back(Vector3d(x, y, z));
+                    Nodes.push_back(Eigen::Vector3d(x, y, z));
                 }
             } 
             // change "facenodes\r" below to "facenodes" if needed
             else if (typeSpec == "facenodes\r") {
                 if (dataLine.size() != 3) {
-                    cerr << "Warning. Invalid input for edges." <<std::endl;
+                    std::cerr << "Warning. Invalid input for edges." <<std::endl;
                 } else {
                     int node1 = stoi(dataLine[0]);
                     int node2 = stoi(dataLine[1]);

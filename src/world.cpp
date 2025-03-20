@@ -24,16 +24,18 @@ World::World(const std::shared_ptr<SoftRobots>& soft_robots,
     
     // Declare inner elastic forces. 
     // add shell elastic forces
+    if(sim_params.structure_shell) {
         forces->addForce(std::make_shared<elasticStretchingForceShell>(soft_robots));
         forces->addForce(std::make_shared<elasticBendingForceShell>(soft_robots));
-
+    } else {
         forces->addForce(std::make_shared<ElasticStretchingForce>(soft_robots));
         forces->addForce(std::make_shared<ElasticBendingForce>(soft_robots));
         forces->addForce(std::make_shared<ElasticTwistingForce>(soft_robots));
+    }
     
     // std::cout<< "no. of forces after adding elastic forces: " << forces->forces.size()<< std::endl;
 
-    // Declare inertial force. Should be avoided for explicit methods
+    // Declare inertial force. Should be avoided for explicit methodsd 
     if (sim_params.integrator != FORWARD_EULER && sim_params.integrator != VERLET_POSITION) {
         forces->addForce(std::make_shared<InertialForce>(soft_robots));
     }
